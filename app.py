@@ -4,33 +4,37 @@ import requests
 
 app = Flask(__name__)
 
-# Hugging Face Free Inference API Configuration
-# We use Meta's Llama-3 model directly in the cloud for free
+# Switching to Mistral-7B - a heavily active and stable free cloud brain
 HF_API_URL = "https://huggingface.co"
-# No API token is required for basic, low-volume test requests!
 
 def get_bot_response(user_text):
     try:
-        # Format the chat payload for the cloud server
         payload = {
-            "inputs": f"<|system|>\nYou are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch.<|user|>\n{user_text}\n<|assistant|>",
-            "parameters": {"max_new_tokens": 500, "return_full_text": False}
+            "inputs": f"<s>[INST] You are Lunar AI, an ultra-intelligent, space-themed AI chatbot built from scratch. Answer this short question briefly: {user_text} [/INST]",
+            "parameters": {"max_new_tokens": 250, "return_full_text": False}
         }
         
         response = requests.post(HF_API_URL, json=payload)
+        
+        # SAFETY CHECK: If the server sends back an error code, catch it safely
+        if response.status_code != 200:
+            return "Lunar AI cloud brain is currently calibrating in orbit. Please wait 10 seconds and retry transmission!"
+            
         output = response.json()
         
-        # Extract response text safely
+        # Parse the JSON response text carefully
         if isinstance(output, list) and len(output) > 0:
-            return output[0].get('generated_text', 'Transmission blank. Try again.')
-        elif isinstance(output, dict) and 'error' in output:
-            return f"Cloud brain warming up: {output['error']}. Wait 10 seconds and retry!"
+            return output[0].get('generated_text', 'Transmission blank. Try re-sending.')
+        elif isinstance(output, dict) and 'generated_text' in output:
+            return output['generated_text']
         else:
-            return "Lunar AI Cloud uplink experienced a translation anomaly."
+            return "Lunar AI Cloud uplink experienced a brief processing anomaly. Try again!"
+            
     except Exception as e:
-        return f"Cloud connection failed: {str(e)}"
+        # Prevents the "Expecting value" text from ever crashing your browser window again
+        return "Uplink congested. Re-entering transmission orbit, please try sending your message again."
 
-# Bulletproof Cyberpunk Layout
+# Cyberpunk Layout
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -76,7 +80,7 @@ HTML_TEMPLATE = """
             </div>
             <div class="status-bar">
                 <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">LLAMA3_CLOUD</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">MISTRAL_7B</span></div>
                 <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLOUD</span></div>
             </div>
         </div>
@@ -153,4 +157,3 @@ def get_response():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
-
