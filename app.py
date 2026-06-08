@@ -1,48 +1,163 @@
 import os
-from flask import Flask, render_template_string, jsonify
+from flask import (
+    Flask, 
+    render_template_string
+)
 
 app = Flask(__name__)
 
-# Server logic acts purely as a static engine delivery port.
-# The user's web browser securely compiles the AI logic directly!
+# Styled template layout block
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Lunar AI Chatbot</title>
-    <!-- Imports WebLLM for serverless local browser intelligence -->
+    <title>Lunar AI</title>
+    
+    <!-- Framework split to keep text tight -->
     <script type="importmap">
     {
-        "imports": {
-            "@mlc-ai/web-llm": "https://esm.run"
-        }
+      "imports": {
+        "@mlc-ai/web-llm": 
+        "https://esm.run"
+      }
     }
     </script>
-    <script src="https://jsdelivr.net"></script>
+    
+    <script src="https://jsdelivr.net">
+    </script>
+    
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-container { width: 440px; height: 600px; background: #0d1117; border-radius: 16px; box-shadow: 0 0 30px rgba(69, 243, 255, 0.15); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #00f0ff; }
-        .chat-header { background: #07090e; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; border-bottom: 2px solid #00f0ff; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1); position: relative; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .logo-area { display: flex; align-items: center; gap: 8px; color: #00f0ff; font-weight: bold; font-size: 19px; letter-spacing: 3px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.6); }
-        .pulse-dot { width: 8px; height: 8px; background: #00f0ff; border-radius: 50%; display: inline-block; animation: core-glow 1.5s infinite; }
-        .clear-btn { background: rgba(255, 0, 85, 0.1); border: 1px solid #ff0055; color: #ff0055; cursor: pointer; padding: 6px 14px; font-family: inherit; font-size: 11px; font-weight: bold; border-radius: 4px; letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
-        .clear-btn:hover { background: #ff0055; color: #05070a; box-shadow: 0 0 15px #ff0055; transform: scale(1.05); }
-        .status-bar { display: flex; justify-content: space-between; font-size: 10px; color: #8b949e; border-top: 1px solid rgba(0, 240, 255, 0.2); padding-top: 6px; margin-top: 2px; }
-        .status-item { display: flex; align-items: center; gap: 4px; }
-        .status-active { color: #00ff66; font-weight: bold; text-shadow: 0 0 5px rgba(0, 255, 102, 0.5); }
-        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #0b0e14; }
-        .message { padding: 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; font-size: 14px; line-height: 1.4; box-shadow: inset 0 0 5px rgba(255,255,255,0.02); }
-        .user { background: rgba(0, 240, 255, 0.15); color: #00f0ff; align-self: flex-end; font-weight: bold; border: 1px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
-        .bot { background: #161b22; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
-        .bot a { color: #00f0ff; font-weight: bold; text-decoration: underline; }
-        .input-area { display: flex; border-top: 2px solid #00f0ff; background: #07090e; }
-        .input-area input { flex: 1; padding: 16px; border: none; outline: none; font-size: 14px; background: #07090e; color: #fff; font-family: inherit; }
-        .input-area button { padding: 16px 28px; background: #00f0ff; color: #05070a; border: none; cursor: pointer; font-weight: bold; font-family: inherit; transition: all 0.2s; letter-spacing: 1px; }
-        .input-area button:hover { background: #7dfcff; }
-        .loading { background: #0d1117; color: #ff0055; align-self: flex-start; border: 1px dashed #ff0055; font-weight: bold; animation: blink 1.2s infinite; display: none; }
-        @keyframes blink { 0% { opacity: 0.4; } 50% { opacity: 1.0; } 100% { opacity: 0.4; } }
-        @keyframes core-glow { 0% { box-shadow: 0 0 2px #00f0ff; } 50% { box-shadow: 0 0 12px #00f0ff, 0 0 18px #00f0ff; } 100% { box-shadow: 0 0 2px #00f0ff; } }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #05070a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 440px;
+            height: 600px;
+            background: #0d1117;
+            border-radius: 16px;
+            box-shadow: 0 0 25px 
+              rgba(0, 240, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid #00f0ff;
+        }
+        .chat-header {
+            background: #07090e;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-bottom: 2px solid #00f0ff;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00f0ff;
+            font-weight: bold;
+            font-size: 19px;
+            letter-spacing: 2px;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #00f0ff;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .clear-btn {
+            background: rgba(255,0,85,0.1);
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            cursor: pointer;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #8b949e;
+            border-top: 1px solid 
+              rgba(0, 240, 255, 0.2);
+            padding-top: 6px;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #0b0e14;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            display: inline-block;
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .user {
+            background: rgba(0,240,255,0.15);
+            color: #00f0ff;
+            align-self: flex-end;
+            border: 1px solid #00f0ff;
+        }
+        .bot {
+            background: #161b22;
+            color: #c9d1d9;
+            align-self: flex-start;
+            border: 1px solid #30363d;
+        }
+        .input-area {
+            display: flex;
+            border-top: 2px solid #00f0ff;
+            background: #07090e;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            outline: none;
+            background: #07090e;
+            color: #fff;
+        }
+        .input-area button {
+            padding: 16px 24px;
+            background: #00f0ff;
+            color: #05070a;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .loading {
+            background: #0d1117;
+            color: #ff0055;
+            align-self: flex-start;
+            border: 1px dashed #ff0055;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -51,116 +166,154 @@ HTML_TEMPLATE = """
             <div class="header-top">
                 <div class="logo-area">
                     <span class="pulse-dot"></span>
-                    <span>LUNAR//AI_</span>
+                    <span>LUNAR//AI</span>
                 </div>
-                <button class="clear-btn" onclick="location.reload()">SYS_REBOOT</button>
+                <button class="clear-btn" 
+                        onclick="location.reload()">
+                    SYS_REBOOT
+                </button>
             </div>
             <div class="status-bar">
-                <div class="status-item">SYS_STATUS: <span id="syncStatus" style="color: #ffaa00;">SYNCING</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">SMOLLM_135M</span></div>
-                <div class="status-item">SECURE: <span style="color: #00f0ff;">STANDALONE</span></div>
+                <div>STATUS: 
+                  <span id="sync" style="color:#ffa00;">
+                    SYNCING
+                  </span>
+                </div>
+                <div>CORE: 
+                  <span style="color:#00f0ff;">
+                    SMOLLM
+                  </span>
+                </div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot" id="initMessage">Initializing browser matrix framework... Please hold uplink...</div>
-            <div class="message loading" id="loadingIndicator">>>> LUNAR AI IS THINKING...</div>
+            <div class="message bot" id="init">
+                Syncing local cloud matrix module...
+            </div>
+            <div class="message loading" id="loader">
+                >>> THINKING MATRIX ACTIVE...
+            </div>
         </div>
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Loading brain engine..." onkeypress="handleKeyPress(event)" autocomplete="off" disabled>
-            <button id="sendBtn" onclick="sendMessage()" disabled>SEND</button>
+            <input type="text" id="userInput" 
+                   placeholder="Awaiting core..." 
+                   onkeypress="handleKey(event)" 
+                   disabled>
+            <button id="btn" onclick="send()" 
+                    disabled>SEND</button>
         </div>
     </div>
 
     <script type="module">
-        import * as webLLM from "@mlc-ai/web-llm";
+        import * as wl from "@mlc-ai/web-llm";
 
-        // Selection of a highly accurate, tiny model optimal for serverless browsers
-        const selectedModel = "SmolLM-135M-Instruct-q4f16_1-MLC";
-        let engine;
-        let chatHistory = [
-            { role: "system", content: "You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. Keep your responses short, creative, and space-themed." }
+        const modelName = 
+          "SmolLM-135M-Instruct-q4f16_1-MLC";
+        let botBrain;
+        let history = [
+            { 
+              role: "system", 
+              content: "You are Lunar AI. Brief answers." 
+            }
         ];
 
-        async function initializeAI() {
-            const initBox = document.getElementById("initMessage");
+        async function boot() {
+            const box = document.getElementById("init");
             try {
-                engine = new webLLM.CreateMLCEngine();
-                
-                // Track progress of loading model files into browser memory
-                await engine.reload(selectedModel, {
-                    initProgressCallback: (report) => {
-                        initBox.innerText = `Loading core modules: ${Math.round(report.progress * 100)}%`;
+                // Connecting web framework variables
+                botBrain = await wl.CreateMLCEngine(
+                    modelName, 
+                    {
+                        initProgressCallback: (p) => {
+                            box.innerText = 
+                              `Loading engine: ` +
+                              `${Math.round(p.progress * 100)}%`;
+                        }
                     }
-                });
-
-                initBox.innerHTML = "System online. Secure matrix engine synchronized. Enter any text directive...";
-                document.getElementById("syncStatus").innerText = "ONLINE";
-                document.getElementById("syncStatus").style.color = "#00ff66";
-                document.getElementById("userInput").placeholder = "Type anything at all...";
-                document.getElementById("userInput").disabled = false;
-                document.getElementById("sendBtn").disabled = false;
-            } catch (err) {
-                initBox.innerText = "Module compilation anomaly. Performing browser override layout fallback...";
-                setupBasicFallback();
+                );
+                box.innerHTML = "System live. Input commands.";
+                document.getElementById("sync").innerText = 
+                  "ONLINE";
+                document.getElementById("sync").style.color = 
+                  "#00ff66";
+                document.getElementById("userInput").placeholder = 
+                  "Type command text...";
+                document.getElementById("userInput").disabled = 
+                  false;
+                document.getElementById("btn").disabled = 
+                  false;
+            } catch (e) {
+                box.innerText = "Error. Using offline echo link.";
             }
         }
 
-        function setupBasicFallback() {
-            document.getElementById("syncStatus").innerText = "LOCAL_REBOOT";
-            document.getElementById("syncStatus").style.color = "#00f0ff";
-            document.getElementById("userInput").disabled = false;
-            document.getElementById("sendBtn").disabled = false;
-            document.getElementById("userInput").placeholder = "Type anything...";
-        }
+        window.send = async function() {
+            const field = document.getElementById("userInput");
+            const text = field.value.trim();
+            if (!text) return;
 
-        window.sendMessage = async function() {
-            const input = document.getElementById("userInput");
-            const messageText = input.value.trim();
-            if (!messageText) return;
+            printMsg(text, "user", false);
+            field.value = "";
 
-            appendMessage(messageText, "user", false);
-            input.value = "";
+            const loadBar = document.getElementById("loader");
+            const box = document.getElementById("chatBox");
+            box.appendChild(loadBar); 
+            loadBar.style.style.display = "block";
+            box.scrollTop = box.scrollHeight;
 
-            const loader = document.getElementById("loadingIndicator");
-            const chatBox = document.getElementById("chatBox");
-            chatBox.appendChild(loader); 
-            loader.style.display = "block";
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Clean fallback loops for mathematical anomalies or rapid words
-            if (messageText.toLowerCase() === "1+1" || messageText.toLowerCase() === "1 + 1") {
-                loader.style.display = "none";
-                appendMessage("Calculation complete: **1 + 1 = 2**. Core math parameters operational.", "bot", true);
+            if (text.toLowerCase() === "1+1") {
+                loadBar.style.display = "none";
+                printMsg("Result parameters: **2**.", "bot", true);
                 return;
             }
 
             try {
-                chatHistory.push({ role: "user", content: messageText });
-                
-                // Direct offline text compilation via the browser engine
-                const reply = await engine.chat.completions.create({ messages: chatHistory });
-                const botReply = reply.choices[0].message.content;
-                
-                chatHistory.push({ role: "assistant", content: botReply });
-                loader.style.display = "none";
-                appendMessage(botReply, "bot", true);
+                history.push({ role: "user", content: text });
+                const res = await botBrain.chat.completions.create({
+                    messages: history
+                });
+                const reply = res.choices[0].message.content;
+                history.push({ role: "assistant", content: reply });
+                loadBar.style.display = "none";
+                printMsg(reply, "bot", true);
             } catch (err) {
-                // Instantly echo raw input words back safely if hardware fails compilation
-                loader.style.display = "none";
-                appendMessage(`Lunar AI compiled instruction string successfully.\\n\\nLogged command word output: "${messageText}"`, "bot", true);
+                loadBar.style.display = "none";
+                printMsg(`Echo: "${text}"`, "bot", true);
             }
         }
 
-        window.appendMessage = function(text, sender, useMarkdown) {
-            const chatBox = document.getElementById("chatBox");
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${sender}`;
-            if (useMarkdown) {
+        window.printMsg = function(txt, cls, md) {
+            const box = document.getElementById("chatBox");
+            const div = document.createElement("div");
+            div.className = `message ${cls}`;
+            if (md) {
                 try {
-                    marked.setOptions({ gfm: true, breaks: true });
-                    msgDiv.innerHTML = marked.parse(text);
+                    marked.setOptions({ gfm:true, breaks:true });
+                    div.innerHTML = marked.parse(txt);
                 } catch (e) {
-                    msgDiv.innerText = text;
+                    div.innerText = txt;
                 }
             } else {
-                msgDiv.innerText = text;
+                div.innerText = txt;
+            }
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        window.handleKey = function(e) {
+            if (e.key === "Enter") send();
+        }
+
+        boot();
+    </script>
+</body>
+</html>
+"""
+
+@app.route("/")
+def home():
+    return render_template_string(HTML_TEMPLATE)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port)
