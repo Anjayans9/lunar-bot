@@ -1,31 +1,67 @@
 import os
 from flask import (
     Flask, 
-    render_template_string
+    render_template_string, 
+    request, 
+    jsonify
 )
+import requests
 
 app = Flask(__name__)
 
-# Styled template layout block
+# Secure pipeline connecting to a dedicated Llama-3 brain
+API_URL = (
+    "https://huggingface.co"
+    "models/meta-llama/Meta-Llama-3-8B-Instruct"
+)
+
+# Grab the secure token from Render's dashboard environment
+HF_TOKEN = os.environ.get("HF_TOKEN")
+
+def get_bot_response(user_text):
+    if not HF_TOKEN:
+        return (
+            "Lunar AI Offline: Missing the secure "
+            "HF_TOKEN environment variable."
+        )
+    
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {
+        "inputs": (
+            f"<|system|>You are Lunar AI, a helpful, conversational "
+            f"AI assistant. Answer fluently.<|user|>{user_text}<|assistant|>"
+        ),
+        "parameters": {
+            "max_new_tokens": 300, 
+            "return_full_text": False
+        }
+    }
+    
+    try:
+        response = requests.post(
+            API_URL, 
+            headers=headers, 
+            json=payload, 
+            timeout=10
+        )
+        output = response.json()
+        
+        if isinstance(output, list) and len(output) > 0:
+            return output[0].get('generated_text', '').strip()
+        elif isinstance(output, dict) and 'error' in output:
+            return "Uplink warming up... Try re-sending in 10 seconds."
+        else:
+            return "Uplink anomaly. Please try re-sending."
+    except Exception:
+        return "Deep space transmission signal weak. Try again."
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Lunar AI</title>
-    
-    <!-- Framework split to keep text tight -->
-    <script type="importmap">
-    {
-      "imports": {
-        "@mlc-ai/web-llm": 
-        "https://esm.run"
-      }
-    }
-    </script>
-    
     <script src="https://jsdelivr.net">
     </script>
-    
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -41,8 +77,7 @@ HTML_TEMPLATE = """
             height: 600px;
             background: #0d1117;
             border-radius: 16px;
-            box-shadow: 0 0 25px 
-              rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -92,8 +127,7 @@ HTML_TEMPLATE = """
             justify-content: space-between;
             font-size: 10px;
             color: #8b949e;
-            border-top: 1px solid 
-              rgba(0, 240, 255, 0.2);
+            border-top: 1px solid rgba(0, 240, 255, 0.2);
             padding-top: 6px;
         }
         .chat-box {
@@ -130,6 +164,11 @@ HTML_TEMPLATE = """
             align-self: flex-start;
             border: 1px solid #30363d;
         }
+        .bot a {
+            color: #00f0ff;
+            font-weight: bold;
+            text-decoration: underline;
+        }
         .input-area {
             display: flex;
             border-top: 2px solid #00f0ff;
@@ -142,6 +181,7 @@ HTML_TEMPLATE = """
             outline: none;
             background: #07090e;
             color: #fff;
+            font-family: inherit;
         }
         .input-area button {
             padding: 16px 24px;
@@ -150,6 +190,7 @@ HTML_TEMPLATE = """
             border: none;
             cursor: pointer;
             font-weight: bold;
+            font-family: inherit;
         }
         .loading {
             background: #0d1117;
@@ -168,44 +209,31 @@ HTML_TEMPLATE = """
                     <span class="pulse-dot"></span>
                     <span>LUNAR//AI</span>
                 </div>
-                <button class="clear-btn" 
-                        onclick="location.reload()">
+                <button class="clear-btn" onclick="location.reload()">
                     SYS_REBOOT
                 </button>
             </div>
             <div class="status-bar">
-                <div>STATUS: 
-                  <span id="sync" style="color:#00ff66;">
-                    ONLINE
-                  </span>
-                </div>
-                <div>CORE: 
-                  <span style="color:#00f0ff;">
-                    HYBRID_GATE
-                  </span>
-                </div>
+                <div>STATUS: <span style="color:#00ff66;">ONLINE</span></div>
+                <div>CORE: <span style="color:#00f0ff;">CLOUD_AI</span></div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot" id="init">
-                System active. Instant cloud channels optimized. Enter transmission text...
+            <div class="message bot">
+                System active. Cloud neural links online. Ask me anything...
             </div>
             <div class="message loading" id="loader">
-                >>> THINKING MATRIX ACTIVE...
+                >>> LUNAR AI IS THINKING...
             </div>
         </div>
         <div class="input-area">
-            <!-- Enforcing text entry blocks to remain wide open permanently -->
             <input type="text" id="userInput" 
                    placeholder="Type any command..." 
-                   onkeypress="handleKey(event)">
-            <button id="btn" onclick="send()">SEND</button>
+                   onkeypress="handleKey(event)" autocomplete="off">
+            <button onclick="send()">SEND</button>
         </div>
     </div>
-
     <script>
-        let history = [];
-
         window.send = async function() {
             const field = document.getElementById("userInput");
             const text = field.value.trim();
@@ -220,34 +248,19 @@ HTML_TEMPLATE = """
             loadBar.style.display = "block";
             box.scrollTop = box.scrollHeight;
 
-            // Instant browser code logic calculation bypass
-            const cleanText = text.toLowerCase();
-            if (cleanText === "1+1" || cleanText === "1 + 1") {
-                setTimeout(() => {
-                    loadBar.style.display = "none";
-                    printMsg("Result parameter trace complete: **1 + 1 = 2**.", "bot", true);
-                }, 400);
-                return;
-            } else if (cleanText === "hi" || cleanText === "hello") {
-                setTimeout(() => {
-                    loadBar.style.display = "none";
-                    printMsg("Greetings, voyager! Lunar AI online. System channels optimized.", "bot", true);
-                }, 400);
-                return;
-            } else if (cleanText.includes("dog")) {
-                setTimeout(() => {
-                    loadBar.style.display = "none";
-                    printMsg("Dogs are domesticated animals famous for their profound intelligence and unique companionship links with humans over earth history.", "bot", true);
-                }, 400);
-                return;
-            }
-
-            // High-resilient automated fallback array matrix
-            setTimeout(() => {
+            try {
+                const response = await fetch("/get_response", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
                 loadBar.style.display = "none";
-                let simulatedOutput = `Lunar AI successfully processed command directive string.\\n\\nLogged text variable output: **"${text}"**`;
-                printMsg(simulatedOutput, "bot", true);
-            }, 800);
+                printMsg(data.reply, "bot", true);
+            } catch (err) {
+                loadBar.style.display = "none";
+                printMsg("Signal dropped. Re-routing...", "bot", false);
+            }
         }
 
         window.printMsg = function(txt, cls, md) {
@@ -280,6 +293,14 @@ HTML_TEMPLATE = """
 def home():
     return render_template_string(HTML_TEMPLATE)
 
+@app.route("/get_response", methods=["POST"])
+def get_response():
+    data = request.get_json()
+    user_message = data.get("message", "")
+    bot_reply = get_bot_response(user_message)
+    return jsonify({"reply": bot_reply})
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
+
