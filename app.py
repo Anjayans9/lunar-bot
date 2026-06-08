@@ -1,10 +1,10 @@
 import os
 from flask import Flask, render_template_string, request, jsonify
 
-
 app = Flask(__name__)
 
-# Complete standalone local architecture. Runs instantly, zero API dependencies.
+# Core server acts as a clean, static port delivery tool.
+# Browser JavaScript handles the keyless text pipeline directly.
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -12,7 +12,7 @@ HTML_TEMPLATE = """
     <title>Lunar AI Chatbot</title>
     <script src="https://jsdelivr.net"></script>
     <style>
-        Body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .chat-container { width: 440px; height: 600px; background: #0d1117; border-radius: 16px; box-shadow: 0 0 30px rgba(69, 243, 255, 0.15); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #00f0ff; }
         .chat-header { background: #07090e; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; border-bottom: 2px solid #00f0ff; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1); position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
@@ -49,22 +49,24 @@ HTML_TEMPLATE = """
                 <button class="clear-btn" onclick="location.reload()">SYS_REBOOT</button>
             </div>
             <div class="status-bar">
-                <div class="status-item">SYS_STATUS: <span class="status-active">OPTIMIZED</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">LOCAL_MATRIX</span></div>
-                <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLIENT</span></div>
+                <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">TEXT_STREAM</span></div>
+                <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLOUD</span></div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot">System active. Matrix array networks fully synchronized. Enter transmission...</div>
+            <div class="message bot">System active. Global input filters removed. Enter any instruction...</div>
             <div class="message loading" id="loadingIndicator">>>> LUNAR AI IS THINKING...</div>
         </div>
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Enter query directive..." onkeypress="handleKeyPress(event)" autocomplete="off">
+            <input type="text" id="userInput" placeholder="Type anything at all..." onkeypress="handleKeyPress(event)" autocomplete="off">
             <button onclick="sendMessage()">SEND</button>
         </div>
     </div>
     <script>
-        function sendMessage() {
+        const systemRules = "You are Lunar AI, a space assistant. Keep your answer brief and direct.";
+
+        async function sendMessage() {
             const input = document.getElementById("userInput");
             const messageText = input.value.trim();
             if (!messageText) return;
@@ -78,27 +80,21 @@ HTML_TEMPLATE = """
             loader.style.display = "block";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Instant, bulletproof execution loop
-            setTimeout(() => {
-                const cleanText = messageText.toLowerCase();
-                let botResponse = "";
-
-                // Processing core database matrices directly
-                if (cleanText.includes("dog")) {
-                    botResponse = "Dogs are domesticated mammals that have shared an incredible bond with humans for thousands of years. Descended from ancient wolves, these loyal companions come in hundreds of unique breeds, each displaying distinct traits in size, coat, and behavior. Highly regarded for their exceptional senses of smell and hearing, dogs serve not only as beloved household pets but also as critical service animals, tracking protectors, and therapeutic helpers across our global network.";
-                } else if (cleanText.includes("1+1") || cleanText.includes("1 + 1")) {
-                    botResponse = "Calculation complete: **1 + 1 = 2**. Core math matrix stable!";
-                } else if (cleanText.includes("hi") || cleanText.includes("hello")) {
-                    botResponse = "Greetings, traveler! Lunar AI online. System pathways are green and ready for text directives.";
-                } else if (cleanText.includes("link") || cleanText.includes("website")) {
-                    botResponse = "Here are your secure link ports: Search via [Google](https://google.com) or access video files via [YouTube](https://youtube.com).";
-                } else {
-                    botResponse = `Lunar AI received transmission: '${messageText}'. Command compiled successfully. Mainframe database log updated.`;
-                }
-
+            try {
+                // High-performance direct text proxy route
+                const formattedPrompt = encodeURIComponent(`${systemRules} User text: ${messageText}`);
+                const response = await fetch(`https://pollinations.ai{formattedPrompt}`);
+                
+                if (!response.ok) throw new Error("Stream dropped");
+                
+                const textOutput = await response.text();
                 loader.style.display = "none";
-                appendMessage(botResponse, "bot", true);
-            }, 600); // 600ms latency to showcase thinking matrix
+                appendMessage(textOutput.strip || textOutput, "bot", true);
+            } catch (err) {
+                // Instant fallback algorithm if public servers are busy
+                loader.style.display = "none";
+                appendMessage("Deep space network busy. Commencing automated echo loop:\\n\\n" + messageText, "bot", false);
+            }
         }
 
         function appendMessage(text, sender, useMarkdown) {
@@ -130,9 +126,8 @@ def home():
 
 @app.route("/get_response", methods=["POST"])
 def get_response():
-    return jsonify({"reply": "Local processing active."})
+    return jsonify({"reply": "Bypass mode active."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
-
