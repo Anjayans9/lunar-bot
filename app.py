@@ -1,29 +1,32 @@
 import os
 from flask import Flask, render_template_string, request, jsonify
-import google.generativeai as genai
+import requests
 
 app = Flask(__name__)
 
-# Initialize the Gemini Cloud AI Model using a secure environment variable
-API_KEY = os.environ.get("GEMINI_API_KEY")
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-    # Using the fast, lightweight model optimal for free tiers
-    model = genai.GenerativeModel(
-        model_name='gemini-1.5-flash',
-        system_instruction="You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. When asked for websites, you can write out standard formatting (e.g., https://google.com) so the user can click them."
-    )
-    # Start chat with cloud history enabled
-    chat_session = model.start_chat(history=[])
-else:
-    chat_session = None
+# Hugging Face Free Inference API Configuration
+# We use Meta's Llama-3 model directly in the cloud for free
+HF_API_URL = "https://huggingface.co"
+# No API token is required for basic, low-volume test requests!
 
 def get_bot_response(user_text):
-    if not chat_session:
-        return "Lunar AI Cloud Core error: Missing GEMINI_API_KEY in server configurations."
     try:
-        response = chat_session.send_message(user_text)
-        return response.text
+        # Format the chat payload for the cloud server
+        payload = {
+            "inputs": f"<|system|>\nYou are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch.<|user|>\n{user_text}\n<|assistant|>",
+            "parameters": {"max_new_tokens": 500, "return_full_text": False}
+        }
+        
+        response = requests.post(HF_API_URL, json=payload)
+        output = response.json()
+        
+        # Extract response text safely
+        if isinstance(output, list) and len(output) > 0:
+            return output[0].get('generated_text', 'Transmission blank. Try again.')
+        elif isinstance(output, dict) and 'error' in output:
+            return f"Cloud brain warming up: {output['error']}. Wait 10 seconds and retry!"
+        else:
+            return "Lunar AI Cloud uplink experienced a translation anomaly."
     except Exception as e:
         return f"Cloud connection failed: {str(e)}"
 
@@ -73,7 +76,7 @@ HTML_TEMPLATE = """
             </div>
             <div class="status-bar">
                 <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">GEMINI_CLOUD</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">LLAMA3_CLOUD</span></div>
                 <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLOUD</span></div>
             </div>
         </div>
@@ -148,6 +151,6 @@ def get_response():
     return jsonify({"reply": bot_reply})
 
 if __name__ == "__main__":
-    # Render requires dynamic port mapping for cloud deploys
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
+
