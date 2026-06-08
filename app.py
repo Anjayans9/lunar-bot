@@ -1,56 +1,17 @@
 import os
 from flask import Flask, render_template_string, request, jsonify
-import requests
 
 app = Flask(__name__)
 
-def get_bot_response(user_text):
-    clean_input = user_text.lower().strip()
-    
-    # 1. ULTIMATE LOCAL BACKUP FALLBACK (Instantly processes basic questions)
-    if "hello" in clean_input or "hi" in clean_input:
-        return "Greetings, commander! Lunar AI system is online and tracking your orbit. How can I assist you today?"
-    elif "1+1" in clean_input or "1 + 1" in clean_input:
-        return "Calculation complete: **1 + 1 = 2**. Core math matrix functioning optimally!"
-    elif "name" in clean_input:
-        return "I am **Lunar AI**, a customized cyberpunk terminal chatbot built completely from scratch."
-    elif "clear" in clean_input or "reboot" in clean_input:
-        return "System refreshed. Neural links cleared."
-
-    # 2. PUBLIC CLOUD RE-ROUTE VIA POLLINATIONS
-    try:
-        system_rules = "You are Lunar AI, a space assistant. Keep your response very brief."
-        formatted_prompt = f"{system_rules} User asks: {user_text}"
-        
-        # Pulls clean text safely using a standard web string
-        url = f"https://text.pollinations.ai/{requests.utils.quote(formatted_prompt)}"
-        response = requests.get(url, timeout=8)
-        
-        if response.status_code == 200 and response.text.strip():
-            return response.text.strip()
-    except Exception:
-        pass  # Quietly fail over to the next secondary relay if the stream drops
-
-    # 3. SECONDARY SMART WEB RELAY (Safe Wikipedia dictionary style backup)
-    try:
-        words = clean_input.split()
-        search_word = words[-1] if words else "space"
-        backup_url = f"https://dictionaryapi.dev{search_word}"
-        res = requests.get(backup_url, timeout=5)
-        if res.status_code == 200:
-            return f"Lunar AI Core operational! Processing link check for keyword: '{search_word}'. Mainframe link active."
-    except Exception:
-        pass
-
-    # 4. FINAL CLEAN CATCH-ALL
-    return f"Lunar AI received transmission: '{user_text}'. Deep-space relay network is busy. Re-transmitting command soon!"
-
-# Cyberpunk UI Terminal Layout
+# Server logic acts purely as a robust, static delivery port
+# Browser JavaScript handles the keyless AI pipeline directly to avoid server bans!
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Lunar AI Chatbot</title>
+    <!-- Imports free client-side AI delivery tools -->
+    <script src="https://puter.com"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
         body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -89,46 +50,63 @@ HTML_TEMPLATE = """
             </div>
             <div class="status-bar">
                 <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">HYBRID_GATE</span></div>
-                <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLOUD</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">PUTER_MATRIX</span></div>
+                <div class="status-item">SECURE: <span style="color: #00f0ff;">CLIENT_SSL</span></div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot">System active. Hybrid connection protocols online. Enter transmission...</div>
+            <div class="message bot">System active. Client browser data tunnels optimized. Enter transmission...</div>
             <div class="message loading" id="loadingIndicator">>>> LUNAR AI IS THINKING...</div>
         </div>
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Enter text command..." onkeypress="handleKeyPress(event)" autocomplete="off">
+            <input type="text" id="userInput" placeholder="Enter query directive..." onkeypress="handleKeyPress(event)" autocomplete="off">
             <button onclick="sendMessage()">SEND</button>
         </div>
     </div>
     <script>
-        function sendMessage() {
+        // System instructions to shape the chatbot persona
+        const systemRules = "You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. Keep your responses short and space-themed where relevant.";
+
+        async function sendMessage() {
             const input = document.getElementById("userInput");
             const messageText = input.value.trim();
             if (!messageText) return;
+
             appendMessage(messageText, "user", false);
             input.value = "";
+
             const loader = document.getElementById("loadingIndicator");
             const chatBox = document.getElementById("chatBox");
             chatBox.appendChild(loader); 
             loader.style.display = "block";
             chatBox.scrollTop = chatBox.scrollHeight;
-            fetch("/get_response", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: messageText })
-            })
-            .then(res => res.json())
-            .then(data => {
+
+            // 1. BUILT-IN HARCODED TRICKS (Lightning-fast client overrides)
+            const cleanText = messageText.toLowerCase();
+            if (cleanText === "1+1" || cleanText === "1 + 1") {
                 loader.style.display = "none";
-                appendMessage(data.reply, "bot", true);
-            })
-            .catch(err => {
+                appendMessage("Calculation complete: **1 + 1 = 2**. Core math matrix stable!", "bot", true);
+                return;
+            } else if (cleanText === "hi" || cleanText === "hello") {
                 loader.style.display = "none";
-                appendMessage("Uplink signal unstable.", "bot", false);
-            });
+                appendMessage("Greetings, traveler! Lunar AI online. Ready for cloud directives.", "bot", true);
+                return;
+            }
+
+            // 2. CLIENT-SIDE EDGE COMPUTING (Bypasses server blocks completely!)
+            try {
+                const prompt = `${systemRules}\\n\\nUser question: ${messageText}`;
+                // Routes requests keyless via high-speed browser proxies
+                const response = await puter.ai.chat(prompt);
+                
+                loader.style.display = "none";
+                appendMessage(response, "bot", true);
+            } catch (err) {
+                loader.style.display = "none";
+                appendMessage("Deep-space uplink weak. Rerouting transmission packet, please send again!", "bot", false);
+            }
         }
+
         function appendMessage(text, sender, useMarkdown) {
             const chatBox = document.getElementById("chatBox");
             const msgDiv = document.createElement("div");
@@ -156,12 +134,10 @@ HTML_TEMPLATE = """
 def home():
     return render_template_string(HTML_TEMPLATE)
 
+# Keeps path placeholder to ensure compatibility with existing deployment linkages
 @app.route("/get_response", methods=["POST"])
 def get_response():
-    data = request.get_json()
-    user_message = data.get("message", "")
-    bot_reply = get_bot_response(user_message)
-    return jsonify({"reply": bot_reply})
+    return jsonify({"reply": "System bypassed to client tunnels."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
