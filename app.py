@@ -6,34 +6,22 @@ app = Flask(__name__)
 
 def get_bot_response(user_text):
     try:
-        # Use DuckDuckGo's public V1 AI endpoint - highly active and completely keyless
-        url = "https://duckduckgo.com"
-        headers = {
-            "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
-        }
+        # Using Pollinations AI text endpoint - perfectly optimized for free cloud apps
+        # It takes prompt structures right inside the URL line safely!
+        system_rules = "You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. Keep responses brief."
         
-        # Querying the Llama-3 model layer through the free public gateway
-        payload = {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "messages": [
-                {"role": "system", "content": "You are Lunar AI, an ultra-intelligent, space-themed AI chatbot built from scratch. Keep responses brief."},
-                {"role": "user", "content": user_text}
-            ]
-        }
+        # Format the URL safely to escape spaces and special characters
+        formatted_prompt = f"{system_rules} User asks: {user_text}"
+        url = f"https://pollinations.ai{requests.utils.quote(formatted_prompt)}"
         
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        # Direct clean text request
+        response = requests.get(url, timeout=15)
         
         if response.status_code == 200:
-            # Parse the streaming text response
+            # This endpoint returns plain text directly, no complex JSON parsing needed!
             return response.text.strip()
         else:
-            # Quick backup option using an alternative open dictionary layout
-            backup_url = f"https://dictionaryapi.dev{user_text.split()[-1]}"
-            res = requests.get(backup_url, timeout=5)
-            if res.status_code == 200:
-                return f"Lunar AI Core operational! Processing text check: '{user_text}'. Database active."
-            return "Lunar AI Cloud core searching for active uplink orbit... Send another message!"
+            return "Lunar AI cloud brain is currently recalculating orbit. Send another message!"
             
     except Exception as e:
         return "Uplink signal unstable. Re-routing through secondary lunar relays, try sending again!"
@@ -61,6 +49,8 @@ HTML_TEMPLATE = """
         .message { padding: 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; font-size: 14px; line-height: 1.4; box-shadow: inset 0 0 5px rgba(255,255,255,0.02); }
         .user { background: rgba(0, 240, 255, 0.15); color: #00f0ff; align-self: flex-end; font-weight: bold; border: 1px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
         .bot { background: #161b22; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
+        .bot a { color: #00f0ff; font-weight: bold; text-decoration: underline; }
+        .bot a:hover { color: #7dfcff; text-shadow: 0 0 5px #00f0ff; }
         .input-area { display: flex; border-top: 2px solid #00f0ff; background: #07090e; }
         .input-area input { flex: 1; padding: 16px; border: none; outline: none; font-size: 14px; background: #07090e; color: #fff; font-family: inherit; }
         .input-area button { padding: 16px 28px; background: #00f0ff; color: #05070a; border: none; cursor: pointer; font-weight: bold; font-family: inherit; transition: all 0.2s; letter-spacing: 1px; }
@@ -82,12 +72,12 @@ HTML_TEMPLATE = """
             </div>
             <div class="status-bar">
                 <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">HYBRID_GATE</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">POLLINATIONS_AI</span></div>
                 <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLOUD</span></div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot">System active. Global cloud network connections optimized. Enter transmission...</div>
+            <div class="message bot">System active. Plaintext data streams optimized. Enter transmission...</div>
             <div class="message loading" id="loadingIndicator">>>> LUNAR AI IS THINKING...</div>
         </div>
         <div class="input-area">
