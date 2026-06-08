@@ -6,27 +6,26 @@ app = Flask(__name__)
 
 def get_bot_response(user_text):
     try:
-        # Using Pollinations AI text endpoint - perfectly optimized for free cloud apps
-        # It takes prompt structures right inside the URL line safely!
+        # System rule to establish the AI persona
         system_rules = "You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. Keep responses brief."
         
-        # Format the URL safely to escape spaces and special characters
-        formatted_prompt = f"{system_rules} User asks: {user_text}"
-        url = f"https://pollinations.ai{requests.utils.quote(formatted_prompt)}"
+        # Combine instructions and safely encode spaces for a clean web request
+        full_prompt = f"{system_rules} User query: {user_text}"
+        url = f"https://text.pollinations.ai/{requests.utils.quote(full_prompt)}"
         
-        # Direct clean text request
+        # Send a direct get request to the free public cloud brain
         response = requests.get(url, timeout=15)
         
         if response.status_code == 200:
-            # This endpoint returns plain text directly, no complex JSON parsing needed!
+            # Pollinations returns direct plain text, making parsing error-proof!
             return response.text.strip()
         else:
-            return "Lunar AI cloud brain is currently recalculating orbit. Send another message!"
+            return "Lunar AI cloud brain is currently recalibrating its orbit. Please send another transmission!"
             
     except Exception as e:
         return "Uplink signal unstable. Re-routing through secondary lunar relays, try sending again!"
 
-# Cyberpunk UI Terminal
+# Cyberpunk UI Terminal Layout
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -49,8 +48,6 @@ HTML_TEMPLATE = """
         .message { padding: 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; font-size: 14px; line-height: 1.4; box-shadow: inset 0 0 5px rgba(255,255,255,0.02); }
         .user { background: rgba(0, 240, 255, 0.15); color: #00f0ff; align-self: flex-end; font-weight: bold; border: 1px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
         .bot { background: #161b22; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
-        .bot a { color: #00f0ff; font-weight: bold; text-decoration: underline; }
-        .bot a:hover { color: #7dfcff; text-shadow: 0 0 5px #00f0ff; }
         .input-area { display: flex; border-top: 2px solid #00f0ff; background: #07090e; }
         .input-area input { flex: 1; padding: 16px; border: none; outline: none; font-size: 14px; background: #07090e; color: #fff; font-family: inherit; }
         .input-area button { padding: 16px 28px; background: #00f0ff; color: #05070a; border: none; cursor: pointer; font-weight: bold; font-family: inherit; transition: all 0.2s; letter-spacing: 1px; }
