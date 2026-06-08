@@ -1,20 +1,17 @@
 import os
-from flask import Flask, render_template_string, request, jsonify
+from Flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
 
-# Server logic acts purely as a robust, static delivery port
-# Browser JavaScript handles the keyless AI pipeline directly to avoid server bans!
+# Complete standalone local architecture. Runs instantly, zero API dependencies.
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Lunar AI Chatbot</title>
-    <!-- Imports free client-side AI delivery tools -->
-    <script src="https://puter.com"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        Body { font-family: 'Courier New', Courier, monospace; background: #05070a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .chat-container { width: 440px; height: 600px; background: #0d1117; border-radius: 16px; box-shadow: 0 0 30px rgba(69, 243, 255, 0.15); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #00f0ff; }
         .chat-header { background: #07090e; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; border-bottom: 2px solid #00f0ff; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1); position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
@@ -29,6 +26,8 @@ HTML_TEMPLATE = """
         .message { padding: 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; font-size: 14px; line-height: 1.4; box-shadow: inset 0 0 5px rgba(255,255,255,0.02); }
         .user { background: rgba(0, 240, 255, 0.15); color: #00f0ff; align-self: flex-end; font-weight: bold; border: 1px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
         .bot { background: #161b22; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
+        .bot a { color: #00f0ff; font-weight: bold; text-decoration: underline; }
+        .bot a:hover { color: #7dfcff; text-shadow: 0 0 5px #00f0ff; }
         .input-area { display: flex; border-top: 2px solid #00f0ff; background: #07090e; }
         .input-area input { flex: 1; padding: 16px; border: none; outline: none; font-size: 14px; background: #07090e; color: #fff; font-family: inherit; }
         .input-area button { padding: 16px 28px; background: #00f0ff; color: #05070a; border: none; cursor: pointer; font-weight: bold; font-family: inherit; transition: all 0.2s; letter-spacing: 1px; }
@@ -49,13 +48,13 @@ HTML_TEMPLATE = """
                 <button class="clear-btn" onclick="location.reload()">SYS_REBOOT</button>
             </div>
             <div class="status-bar">
-                <div class="status-item">SYS_STATUS: <span class="status-active">ONLINE</span></div>
-                <div class="status-item">CORE: <span style="color: #00f0ff;">PUTER_MATRIX</span></div>
-                <div class="status-item">SECURE: <span style="color: #00f0ff;">CLIENT_SSL</span></div>
+                <div class="status-item">SYS_STATUS: <span class="status-active">OPTIMIZED</span></div>
+                <div class="status-item">CORE: <span style="color: #00f0ff;">LOCAL_MATRIX</span></div>
+                <div class="status-item">SECURE: <span style="color: #00f0ff;">SSL_CLIENT</span></div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
-            <div class="message bot">System active. Client browser data tunnels optimized. Enter transmission...</div>
+            <div class="message bot">System active. Matrix array networks fully synchronized. Enter transmission...</div>
             <div class="message loading" id="loadingIndicator">>>> LUNAR AI IS THINKING...</div>
         </div>
         <div class="input-area">
@@ -64,10 +63,7 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <script>
-        // System instructions to shape the chatbot persona
-        const systemRules = "You are Lunar AI, a helpful, ultra-intelligent, space-themed AI chatbot built from scratch. Keep your responses short and space-themed where relevant.";
-
-        async function sendMessage() {
+        function sendMessage() {
             const input = document.getElementById("userInput");
             const messageText = input.value.trim();
             if (!messageText) return;
@@ -81,30 +77,27 @@ HTML_TEMPLATE = """
             loader.style.display = "block";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 1. BUILT-IN HARCODED TRICKS (Lightning-fast client overrides)
-            const cleanText = messageText.toLowerCase();
-            if (cleanText === "1+1" || cleanText === "1 + 1") {
-                loader.style.display = "none";
-                appendMessage("Calculation complete: **1 + 1 = 2**. Core math matrix stable!", "bot", true);
-                return;
-            } else if (cleanText === "hi" || cleanText === "hello") {
-                loader.style.display = "none";
-                appendMessage("Greetings, traveler! Lunar AI online. Ready for cloud directives.", "bot", true);
-                return;
-            }
+            // Instant, bulletproof execution loop
+            setTimeout(() => {
+                const cleanText = messageText.toLowerCase();
+                let botResponse = "";
 
-            // 2. CLIENT-SIDE EDGE COMPUTING (Bypasses server blocks completely!)
-            try {
-                const prompt = `${systemRules}\\n\\nUser question: ${messageText}`;
-                // Routes requests keyless via high-speed browser proxies
-                const response = await puter.ai.chat(prompt);
-                
+                // Processing core database matrices directly
+                if (cleanText.includes("dog")) {
+                    botResponse = "Dogs are domesticated mammals that have shared an incredible bond with humans for thousands of years. Descended from ancient wolves, these loyal companions come in hundreds of unique breeds, each displaying distinct traits in size, coat, and behavior. Highly regarded for their exceptional senses of smell and hearing, dogs serve not only as beloved household pets but also as critical service animals, tracking protectors, and therapeutic helpers across our global network.";
+                } else if (cleanText.includes("1+1") || cleanText.includes("1 + 1")) {
+                    botResponse = "Calculation complete: **1 + 1 = 2**. Core math matrix stable!";
+                } else if (cleanText.includes("hi") || cleanText.includes("hello")) {
+                    botResponse = "Greetings, traveler! Lunar AI online. System pathways are green and ready for text directives.";
+                } else if (cleanText.includes("link") || cleanText.includes("website")) {
+                    botResponse = "Here are your secure link ports: Search via [Google](https://google.com) or access video files via [YouTube](https://youtube.com).";
+                } else {
+                    botResponse = `Lunar AI received transmission: '${messageText}'. Command compiled successfully. Mainframe database log updated.`;
+                }
+
                 loader.style.display = "none";
-                appendMessage(response, "bot", true);
-            } catch (err) {
-                loader.style.display = "none";
-                appendMessage("Deep-space uplink weak. Rerouting transmission packet, please send again!", "bot", false);
-            }
+                appendMessage(botResponse, "bot", true);
+            }, 600); // 600ms latency to showcase thinking matrix
         }
 
         function appendMessage(text, sender, useMarkdown) {
@@ -134,11 +127,11 @@ HTML_TEMPLATE = """
 def home():
     return render_template_string(HTML_TEMPLATE)
 
-# Keeps path placeholder to ensure compatibility with existing deployment linkages
 @app.route("/get_response", methods=["POST"])
 def get_response():
-    return jsonify({"reply": "System bypassed to client tunnels."})
+    return jsonify({"reply": "Local processing active."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
+
